@@ -1,27 +1,97 @@
-# lume
+<div align="center">
 
-A living ocean data visualization. Bioluminescent points drift across a deep ocean canvas — each point's size = wave height, color = sea surface temperature, movement = ocean current.
+<h1>Lume</h1>
 
-**Visual Style:** Dark — Abyss (deep ocean, bioluminescent cyan-teal, warm amber accents)
+<p><b>Glowing points drift on the current off San Francisco.</b></p>
 
-**Data Source:** Open-Meteo Marine API (SF Buoy — ocean current velocity, direction, wave height, sea surface temperature)
+<p><i>The Bay's marine forecast, drawn as a slow field of bioluminescence: colour from the water temperature, size from the waves, drift from the current.</i></p>
 
-**How it works:**
-- API fetch every 60s from the Open-Meteo Marine API at SF Buoy coordinates (37.77, -122.42)
-- Wave height controls point radius (taller waves = larger points)
-- Sea surface temperature controls point color (cold = cyan, moderate = teal, warm = amber)
-- Ocean current velocity and direction control point drift speed and angle
-- Each point has slight random perturbation for natural visual variety
-- Tap a point to see its exact marine data in the quiet zone overlay
+<h6>
 
-**Toolcraft controls panel:**
-- Particle count slider (20-200)
-- Glow intensity slider (5-60)
-- Drift speed multiplier (0.1-3.0)
-- Color palette selector (natural / warm / cool / monochrome)
+![Data](https://img.shields.io/badge/data-Open--Meteo%20Marine-00bcd4?style=flat-square)
+![React](https://img.shields.io/badge/React-19-111111?style=flat-square&logo=react&logoColor=white)
+![Canvas](https://img.shields.io/badge/Canvas-2D-111111?style=flat-square)
+![Live](https://img.shields.io/badge/live-lume--6mm.pages.dev-00bcd4?style=flat-square)
+![Status](https://img.shields.io/badge/creative%20daily-experiment-555555?style=flat-square)
 
-**GitHub:** https://github.com/parthchandak02/lume
+</h6>
 
-**Live:** https://lume.parthchandak.info (provisioning) | https://lume-6mm.pages.dev
+<a href="https://lume-6mm.pages.dev"><b>Live demo</b></a> ·
+<a href="#how-it-works"><b>How it works</b></a> ·
+<a href="#run-it"><b>Run it</b></a>
 
-**Tech:** Pixel Point Toolcraft + Vite. Canvas 2D with bioluminescent glow rendering. Hosted on Cloudflare Pages.
+<br><br>
+
+<a href="https://lume-6mm.pages.dev"><img src="docs/assets/readme/hero.jpg" width="100%" alt="Teal glowing dots scattered over a dark navy grid, a 16.5 degree sea surface temperature readout top-left, a Controls panel with Particles, Glow, Drift Speed and Palette on the right, and a footer stamp reading wave 1.16 m, SST 16.5 °C, live"></a>
+
+<sub>Live capture, 22 October 2026. Real forecast data, not a demo.</sub>
+
+</div>
+
+<br>
+
+About a hundred and twenty glowing points pulse and drift across a dark ocean grid. All of them
+are driven by one reading: the current hour of the
+[Open-Meteo Marine](https://open-meteo.com/en/docs/marine-weather-api) forecast for the grid
+point at 37.77° N, 122.42° W. Warmer water shifts the field from cyan toward amber, bigger waves
+make every point larger, and the ocean current sets the direction and speed of the drift. No API
+key is needed.
+
+## How it works
+
+| Forecast field (`current`) | Drives |
+|---|---|
+| `sea_surface_temperature` | Point colour on a 5 to 30 °C scale (cyan, teal, amber, orange), with ±0.75 °C jitter per point, and the big number top-left |
+| `wave_height` | Point radius: 6 px plus 4 px per metre |
+| `ocean_current_velocity` | Drift speed |
+| `ocean_current_direction` | Drift heading, with a little random spread per point |
+
+The page refetches every 60 seconds. If the request fails it uses fixed fallback values
+(1.06 m waves, 15.4 °C) and the footer stamp says `fallback` instead of `live`. Click a point to
+open a card with the current wave height, temperature, current speed and heading; it fades after
+three seconds.
+
+The side panel adjusts glow radius, drift speed and the palette (Natural, Warm, Cool, Mono).
+
+## Run it
+
+```bash
+git clone https://github.com/parthchandak02/lume.git
+cd lume
+npm install
+npm run dev      # dev server on a free port
+npm run build    # typecheck, then static site in dist/
+```
+
+The build is a static `dist/` folder, deployed to Cloudflare Pages.
+
+<details>
+<summary><b>Project layout</b></summary>
+
+```
+src/components/LumeCanvas.tsx  Point field, glow rendering, drift and click hit-testing
+src/data/marine.ts             Open-Meteo Marine fetch, fallback, colour ramps, heading names
+src/routes/index.tsx           Page chrome: temperature readout, legend, stamp, data card
+src/app/app-schema.ts          The Toolcraft controls panel
+src/toolcraft/                 Toolcraft runtime and UI components
+brief.md                       The original creative brief
+```
+
+</details>
+
+<details>
+<summary><b>Known rough edges</b></summary>
+
+- The Particles slider is wired to the panel but not to the canvas, which always draws 120 points.
+- New readings update the chrome every minute but the points keep the values they started with
+  until the palette is changed.
+- The panel's Source field stays on `loading...`; the footer stamp carries the live values.
+- `lume.parthchandak.info` does not resolve yet; the Pages URL above is the working one.
+
+</details>
+
+<br>
+
+<div align="center">
+<sub>Built with React, Canvas 2D, Vite and Toolcraft. Data from Open-Meteo Marine.</sub>
+</div>
