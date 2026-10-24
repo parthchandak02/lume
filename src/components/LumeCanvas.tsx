@@ -90,13 +90,14 @@ export function LumeCanvas({
         }
         pointsRef.current = pts;
       } else {
-        // Carry the new reading into the existing points so they keep their positions
-        const { vx, vy } = directionToVector(data.currentDirection, data.currentVelocity);
-        pointsRef.current.forEach((p) => {
-          p.color = sstToColor(data.sst + (Math.random() - 0.5) * 1.5, colorSchemeRef.current);
-          p.radius = POINT_BASE_RADIUS + data.waveHeight * POINT_RADIUS_PER_WAVE;
-          p.speed = Math.sqrt(vx * vx + vy * vy) * 0.8;
-          p.angle = Math.atan2(vy, vx);
+        // Carry the new reading into the existing points so they keep their positions,
+        // with the same per-point jitter as a fresh field so it does not turn uniform
+        pointsRef.current.forEach((p, i) => {
+          const fresh = makePoint(data, 0, 0, colorSchemeRef.current, i);
+          p.color = fresh.color;
+          p.radius = fresh.radius;
+          p.speed = fresh.speed;
+          p.angle = fresh.angle;
           p.waveHeight = data.waveHeight;
           p.sst = data.sst;
         });
