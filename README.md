@@ -46,12 +46,13 @@ key is needed.
 | `ocean_current_velocity` | Drift speed |
 | `ocean_current_direction` | Drift heading, with a little random spread per point |
 
-The page refetches every 60 seconds. If the request fails it uses fixed fallback values
-(1.06 m waves, 15.4 °C) and the footer stamp says `fallback` instead of `live`. Click a point to
-open a card with the current wave height, temperature, current speed and heading; it fades after
-three seconds.
+The page refetches every 60 seconds and the points take on each new reading. If the request
+fails it uses fixed fallback values (1.06 m waves, 15.4 °C) and the footer stamp says `fallback`
+instead of `live`. Click a point to open a card with the current wave height, temperature, current
+speed and heading; it fades after three seconds.
 
-The side panel adjusts glow radius, drift speed and the palette (Natural, Warm, Cool, Mono).
+The side panel sets the number of points (20 to 200), glow radius, drift speed and the palette
+(Natural, Warm, Cool, Mono), and its Source field shows the latest reading.
 
 ## Run it
 
@@ -82,10 +83,6 @@ brief.md                       The original creative brief
 <details>
 <summary><b>Known rough edges</b></summary>
 
-- The Particles slider is wired to the panel but not to the canvas, which always draws 120 points.
-- New readings update the chrome every minute but the points keep the values they started with
-  until the palette is changed.
-- The panel's Source field stays on `loading...`; the footer stamp carries the live values.
 - `lume.parthchandak.info` does not resolve yet; the Pages URL above is the working one.
 
 </details>

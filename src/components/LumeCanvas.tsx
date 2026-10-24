@@ -1,5 +1,5 @@
 import * as React from "react";
-import { useToolcraftValue } from "@/toolcraft/runtime/react";
+import { useToolcraft, useToolcraftValue } from "@/toolcraft/runtime/react";
 import {
   fetchMarineData,
   sstToColor,
@@ -24,6 +24,34 @@ interface Point {
 
 const POINT_BASE_RADIUS = 6;
 const POINT_RADIUS_PER_WAVE = 4;
+const REFETCH_MS = 60000;
+
+function makePoint(data: MarineData, W: number, H: number, colorScheme: string, index: number): Point {
+  const { vx, vy } = directionToVector(data.currentDirection, data.currentVelocity);
+  const jitterR = (Math.random() - 0.5) * 0.4;
+  const jitterA = (Math.random() - 0.5) * 0.5;
+  return {
+    x: Math.random() * W,
+    y: Math.random() * H,
+    radius: POINT_BASE_RADIUS + data.waveHeight * POINT_RADIUS_PER_WAVE + jitterR * 2,
+    color: sstToColor(data.sst + (Math.random() - 0.5) * 1.5, colorScheme),
+    speed: Math.sqrt(vx * vx + vy * vy) * 0.8 + Math.random() * 0.4,
+    angle: Math.atan2(vy, vx) + jitterA,
+    pulsePhase: Math.random() * Math.PI * 2,
+    baseOpacity: 0.5 + Math.random() * 0.3,
+    waveHeight: data.waveHeight,
+    sst: data.sst,
+    index,
+  };
+}
+
+function formatSourceStamp(data: MarineData): string {
+  const time = new Date(data.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return (
+    `Open-Meteo Marine -- SF Buoy -- wave ${data.waveHeight.toFixed(2)}m -- SST ${data.sst.toFixed(1)}\u00b0C -- updated ${time} -- ` +
+    (data.isFallback ? "fallback" : "live")
+  );
+}
 
 export function LumeCanvas({
   quietZoneRef,
@@ -36,38 +64,17 @@ export function LumeCanvas({
   const animRef = React.useRef(0);
   const lastFetchRef = React.useRef(0);
   const bgCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+  const { dispatch } = useToolcraft();
 
   const particleCount = (useToolcraftValue("particleCount") as number) ?? 100;
   const glowIntensity = (useToolcraftValue("glowIntensity") as number) ?? 30;
   const animSpeed = (useToolcraftValue("animationSpeed") as number) ?? 1;
   const colorScheme = (useToolcraftValue("colorScheme") as string) ?? "natural";
 
-  // Initialize points
-  const initPoints = React.useCallback(
-    (data: MarineData, W: number, H: number) => {
-      const pts: Point[] = [];
-      const { vx, vy } = directionToVector(data.currentDirection, data.currentVelocity);
-      for (let i = 0; i < 120; i++) {
-        const jitterR = (Math.random() - 0.5) * 0.4;
-        const jitterA = (Math.random() - 0.5) * 0.5;
-        pts.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          radius: POINT_BASE_RADIUS + data.waveHeight * POINT_RADIUS_PER_WAVE + jitterR * 2,
-          color: sstToColor(data.sst + (Math.random() - 0.5) * 1.5, colorScheme),
-          speed: Math.sqrt(vx * vx + vy * vy) * 0.8 + Math.random() * 0.4,
-          angle: Math.atan2(vy, vx) + jitterA,
-          pulsePhase: Math.random() * Math.PI * 2,
-          baseOpacity: 0.5 + Math.random() * 0.3,
-          waveHeight: data.waveHeight,
-          sst: data.sst,
-          index: i,
-        });
-      }
-      pointsRef.current = pts;
-    },
-    [colorScheme],
-  );
+  const particleCountRef = React.useRef(particleCount);
+  particleCountRef.current = particleCount;
+  const colorSchemeRef = React.useRef(colorScheme);
+  colorSchemeRef.current = colorScheme;
 
   const fetchData = React.useCallback(async () => {
     const data = await fetchMarineData();
@@ -75,18 +82,60 @@ export function LumeCanvas({
     const canvas = canvasRef.current;
     if (canvas) {
       if (pointsRef.current.length === 0) {
-        initPoints(data, canvas.width, canvas.height);
+        const W = canvas.clientWidth || window.innerWidth;
+        const H = canvas.clientHeight || window.innerHeight;
+        const pts: Point[] = [];
+        for (let i = 0; i < particleCountRef.current; i++) {
+          pts.push(makePoint(data, W, H, colorSchemeRef.current, i));
+        }
+        pointsRef.current = pts;
+      } else {
+        // Carry the new reading into the existing points so they keep their positions
+        const { vx, vy } = directionToVector(data.currentDirection, data.currentVelocity);
+        pointsRef.current.forEach((p) => {
+          p.color = sstToColor(data.sst + (Math.random() - 0.5) * 1.5, colorSchemeRef.current);
+          p.radius = POINT_BASE_RADIUS + data.waveHeight * POINT_RADIUS_PER_WAVE;
+          p.speed = Math.sqrt(vx * vx + vy * vy) * 0.8;
+          p.angle = Math.atan2(vy, vx);
+          p.waveHeight = data.waveHeight;
+          p.sst = data.sst;
+        });
       }
     }
     lastFetchRef.current = Date.now();
-  }, [initPoints]);
+    dispatch({
+      history: "skip",
+      target: "dataStamp",
+      type: "controls.setValue",
+      value: formatSourceStamp(data),
+    });
+  }, [dispatch]);
 
   // Fetch on mount
   React.useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 60000);
+    const interval = setInterval(fetchData, REFETCH_MS);
     return () => clearInterval(interval);
   }, [fetchData]);
+
+  // Add or remove points when the Particles slider moves
+  React.useEffect(() => {
+    const data = marineRef.current;
+    const canvas = canvasRef.current;
+    const pts = pointsRef.current;
+    if (!data || !canvas || pts.length === 0) return;
+    if (pts.length > particleCount) {
+      pts.length = particleCount;
+      return;
+    }
+    const W = canvas.clientWidth || window.innerWidth;
+    const H = canvas.clientHeight || window.innerHeight;
+    for (let i = pts.length; i < particleCount; i++) {
+      pts.push(makePoint(data, W, H, colorScheme, i));
+    }
+    // colorScheme is read for new points only; palette changes are handled below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [particleCount]);
 
   // Update points when controls change
   React.useEffect(() => {
