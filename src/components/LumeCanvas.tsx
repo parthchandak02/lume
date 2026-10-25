@@ -174,19 +174,20 @@ export function LumeCanvas({
     let H = 0;
     let dpr = 1;
 
+    // Size the drawing buffer to the output frame the canvas sits in, not the window
     function resize() {
       dpr = Math.min(window.devicePixelRatio || 1, 2);
-      W = window.innerWidth;
-      H = window.innerHeight;
+      const frame = canvas!.parentElement ?? canvas!;
+      W = frame.clientWidth || window.innerWidth;
+      H = frame.clientHeight || window.innerHeight;
       canvas!.width = W * dpr;
       canvas!.height = H * dpr;
-      canvas!.style.width = W + "px";
-      canvas!.style.height = H + "px";
       ctx!.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
 
     resize();
-    window.addEventListener("resize", resize);
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(canvas.parentElement ?? canvas);
 
     function draw(time: number) {
       ctx!.clearRect(0, 0, W, H);
@@ -282,7 +283,7 @@ export function LumeCanvas({
 
     return () => {
       cancelAnimationFrame(animRef.current);
-      window.removeEventListener("resize", resize);
+      resizeObserver.disconnect();
     };
   }, [animSpeed, glowIntensity]);
 
@@ -290,8 +291,9 @@ export function LumeCanvas({
     const canvas = canvasRef.current;
     if (!canvas || !marineRef.current) return;
     const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    // Map screen pixels to frame pixels, which differ when the frame is zoomed
+    const x = ((e.clientX - rect.left) * canvas.clientWidth) / rect.width;
+    const y = ((e.clientY - rect.top) * canvas.clientHeight) / rect.height;
 
     // Find closest point
     const pts = pointsRef.current;
