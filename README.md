@@ -11,17 +11,17 @@
 ![Data](https://img.shields.io/badge/data-Open--Meteo%20Marine-6fe7dd?style=flat-square)
 ![Canvas 2D](https://img.shields.io/badge/Canvas-2D-111111?style=flat-square)
 ![Toolcraft](https://img.shields.io/badge/Toolcraft-0.0.26-111111?style=flat-square)
-![Live](https://img.shields.io/badge/live-lume--6mm.pages.dev-06121f?style=flat-square)
+![Live](https://img.shields.io/badge/live-lume.parthchandak.info-06121f?style=flat-square)
 
 </h6>
 
-<a href="https://lume-6mm.pages.dev"><b>Live app</b></a> ·
+<a href="https://lume.parthchandak.info"><b>Live app</b></a> ·
 <a href="#how-it-works"><b>How it works</b></a> ·
 <a href="#run-it"><b>Run it</b></a>
 
 <br><br>
 
-<a href="https://lume-6mm.pages.dev"><img src="docs/assets/readme/hero.jpg" width="100%" alt="A night-blue poster for Ocean Beach, San Francisco: on the left 1.7 m waves from the west every 12 seconds, rows for swell, sea level and current, and a green disc for a 17.4 °C sea; on the right a field of cyan points forming bright diagonal bands where the wave crests run, and below it a seven-day chart of wave height with swell dashed and a marker at noon today"></a>
+<a href="https://lume.parthchandak.info"><img src="docs/assets/readme/hero.jpg" width="100%" alt="A night-blue poster for Ocean Beach, San Francisco: on the left 1.7 m waves from the west every 12 seconds, rows for swell, sea level and current, and a green disc for a 17.4 °C sea; on the right a field of cyan points forming bright diagonal bands where the wave crests run, and below it a seven-day chart of wave height with swell dashed and a marker at noon today"></a>
 
 <sub>The default poster: Ocean Beach, today at noon.</sub>
 
