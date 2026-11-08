@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "title": "Lume",
+  "asset": "public/toolcraft/cover.png",
+  "generation": {
+    "kind": "app-composition",
+    "source": "src/app/app-composition.tsx",
+    "state": "app-cover-state.json",
+    "description": "Actual app export (4K PNG) of the default poster: Ocean Beach, San Francisco from the live Open-Meteo Marine forecast on 8 November 2026 at 12:00 local, cyan glow on night blue; 16:9 output, no editor UI."
+  }
+}

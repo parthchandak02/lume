@@ -1,0 +1,16 @@
+{
+  "values": {
+    "appearance.background": "#06121F",
+    "export.image.format": "png",
+    "export.image.resolution": "4k",
+    "export.includeBackground": true,
+    "glow.color": "#6FE7DD",
+    "glow.spacing": 14,
+    "place.latitude": 37.75,
+    "place.longitude": -122.55,
+    "time.day": 0,
+    "time.hour": 12
+  },
+  "canvas": { "size": { "width": 1920, "height": 1080 } },
+  "data": "Live Open-Meteo Marine forecast for 37.75, -122.55 at capture time"
+}
